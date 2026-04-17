@@ -12,7 +12,6 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.twitter.finagle.Http;
-import com.twitter.finagle.ListeningServer;
 import com.twitter.finagle.Service;
 import com.twitter.finagle.http.Request;
 import com.twitter.finagle.http.Response;
@@ -35,17 +34,16 @@ import org.junit.jupiter.api.Test;
 class ServerH2Test extends AbstractServerTest {
 
   @Override
-  protected ListeningServer setupServer() {
-    return Http.server()
-        // ensures all work is offloaded to a thread pool -- this is where problems can happen
-        .withExecutionOffloaded(FuturePool.unboundedPool())
+  protected Http.Server configureServer(Http.Server in) {
+    return in
+        // ensures all work is single threaded (simple case)
+        .withExecutionOffloaded(FuturePool.immediatePool())
         // when enabled, supports protocol h1 & h2, the latter with upgrade
         .withHttp2()
         // todo implement http/2-specific tests
         //  the armeria configuration used at the heart of AbstractHttpServerTest isn't configurable
         //  to http/2
-        .configured(PriorKnowledge.apply(true).mk())
-        .serve(address.getHost() + ":" + port, new AbstractServerTest.TestService());
+        .configured(PriorKnowledge.apply(true).mk());
   }
 
   private static void assertSwitchingProtocolsEvent(EventDataAssert eventDataAssert) {
