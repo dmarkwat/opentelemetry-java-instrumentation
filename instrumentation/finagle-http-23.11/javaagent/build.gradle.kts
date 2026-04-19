@@ -65,8 +65,6 @@ tasks {
     // ensure concurrent tests are competing for offload pool workers
     systemProperty("com.twitter.finagle.offload.numWorkers", "2")
 
-    systemProperty("collectMetadata", otelProps.collectMetadata)
-
     systemProperty(
       "metadataConfig",
       "otel.instrumentation.http.client.emit-experimental-telemetry=true," +
