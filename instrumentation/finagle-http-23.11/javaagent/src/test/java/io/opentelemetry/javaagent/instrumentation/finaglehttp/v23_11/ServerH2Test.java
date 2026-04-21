@@ -65,17 +65,20 @@ class ServerH2Test extends AbstractServerTest {
             .newService(uri.getHost() + ":" + uri.getPort());
 
     Response response =
-        testing.runWithSpan("h2-upgrade-client", () -> Await.result(
-            client.apply(
-                Utils.buildRequest(
-                    "GET",
-                    uri,
-                    ImmutableMap.of(
-                        HttpHeaderNames.USER_AGENT.toString(),
-                        TEST_USER_AGENT,
-                        HttpHeaderNames.X_FORWARDED_FOR.toString(),
-                        TEST_CLIENT_IP))),
-            Duration.fromSeconds(20)));
+        testing.runWithSpan(
+            "h2-upgrade-client",
+            () ->
+                Await.result(
+                    client.apply(
+                        Utils.buildRequest(
+                            "GET",
+                            uri,
+                            ImmutableMap.of(
+                                HttpHeaderNames.USER_AGENT.toString(),
+                                TEST_USER_AGENT,
+                                HttpHeaderNames.X_FORWARDED_FOR.toString(),
+                                TEST_CLIENT_IP))),
+                    Duration.fromSeconds(20)));
 
     Await.result(client.close(), Duration.fromSeconds(5));
 
@@ -93,13 +96,17 @@ class ServerH2Test extends AbstractServerTest {
               s -> s.hasName("h2-upgrade-client").hasNoParent().hasKind(SpanKind.INTERNAL));
           // actual client netty span (including upgrade event)
           spanAssertions.add(
-              s -> s.hasKind(SpanKind.CLIENT).hasName(method).hasParent(trace.getSpan(0))
-                  .hasEventsSatisfyingExactly(ServerH2Test::assertSwitchingProtocolsEvent));
+              s ->
+                  s.hasKind(SpanKind.CLIENT)
+                      .hasName(method)
+                      .hasParent(trace.getSpan(0))
+                      .hasEventsSatisfyingExactly(ServerH2Test::assertSwitchingProtocolsEvent));
           // server netty span (including upgrade event)
           spanAssertions.add(
-              span -> assertServerSpan(span, method, endpoint, endpoint.getStatus())
-                  .hasParent(trace.getSpan(1))
-                  .hasEventsSatisfyingExactly(ServerH2Test::assertSwitchingProtocolsEvent));
+              span ->
+                  assertServerSpan(span, method, endpoint, endpoint.getStatus())
+                      .hasParent(trace.getSpan(1))
+                      .hasEventsSatisfyingExactly(ServerH2Test::assertSwitchingProtocolsEvent));
           // server controller span
           spanAssertions.add(
               span -> {
